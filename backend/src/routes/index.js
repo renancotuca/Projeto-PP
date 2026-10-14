@@ -3,13 +3,14 @@ import users from './users.js';
 import laboratorios from "./laboratorios.js";
 import salas from "./salas.js";
 import status from "./status.js";
+import reservas from "./reservas.js";
 
 const routes = (app) => {
     app.route("/").get((req, res) => 
         res.status(200).json({ message: "API rodando" })
     );
 
-    app.use(express.json(), users, laboratorios, salas, status);
+    app.use(express.json(), users, laboratorios, salas, status, reservas);
 }
 
 export default routes;
