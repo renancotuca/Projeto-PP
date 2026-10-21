@@ -1,16 +1,12 @@
-import express from 'express';
-import users from './users.js';
+import express from "express";
 import laboratorios from "./laboratorios.js";
 import salas from "./salas.js";
-import status from "./status.js";
-import reservas from "./reservas.js";
+import users from "./users.js";
 
-const routes = (app) => {
-    app.route("/").get((req, res) => 
-        res.status(200).json({ message: "API rodando" })
-    );
+export default function routes(app) {
+    app.use(express.json());
 
-    app.use(express.json(), users, laboratorios, salas, status, reservas);
+    app.use(laboratorios);
+    app.use(salas);
+    app.use(users);
 }
-
-export default routes;
