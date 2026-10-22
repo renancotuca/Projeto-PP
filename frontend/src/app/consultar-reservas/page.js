@@ -5,53 +5,37 @@ import Link from "next/link";
 
 export default function ConsultarReservas() {
   const [reservas, setReservas] = useState([]);
-  const [salas, setSalas] = useState([]);
-  const [laboratorios, setLaboratorios] = useState([]);
-  const [usuarios, setUsuarios] = useState([]);
-
   const [filtroData, setFiltroData] = useState("");
   const [filtroUsuario, setFiltroUsuario] = useState("");
   const [filtroRecurso, setFiltroRecurso] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:3000/reservas")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Erro ao buscar reservas");
+        }
+        return res.json();
+      })
       .then((dados) => setReservas(dados))
-      .catch((erro) => console.log("Erro ao buscar reservas:", erro));
-
-    fetch("http://localhost:3000/salas")
-      .then((res) => res.json())
-      .then((dados) => setSalas(dados))
-      .catch((erro) => console.log("Erro ao buscar salas:", erro));
-
-    fetch("http://localhost:3000/laboratorios")
-      .then((res) => res.json())
-      .then((dados) => setLaboratorios(dados))
-      .catch((erro) => console.log("Erro ao buscar laboratorios:", erro));
-
-    fetch("http://localhost:3000/usuarios")
-      .then((res) => res.json())
-      .then((dados) => setUsuarios(dados))
-      .catch((erro) => console.log("Erro ao buscar usuarios:", erro));
+      .catch((erro) => console.log(erro));
   }, []);
 
-  function nomeUsuario(id) {
-    const u = usuarios.find((u) => u.id == id);
-    return u ? u.nome : id;
-  }
-
-  function nomeRecurso(tipo, id) {
-    if (tipo == "laboratorio") {
-      const lab = laboratorios.find((l) => l.id == id);
-      return lab ? "Laboratório " + lab.nome : id;
-    }
-    const sala = salas.find((s) => s.id == id);
-    return sala ? "Sala " + sala.nome : id;
-  }
-
   function formatarData(data) {
-    const partes = String(data).slice(0, 10).split("-");
-    return partes[2] + "/" + partes[1] + "/" + partes[0];
+    if (!data) return "";
+
+    const dataFormatada = String(data).slice(0, 10);
+    const partes = dataFormatada.split("-");
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  }
+
+  function formatarHora(hora) {
+    if (!hora) return "";
+
+    const data = new Date(hora);
+
+    return data.toISOString().slice(11, 16);
   }
 
   function limparFiltros() {
@@ -60,16 +44,25 @@ export default function ConsultarReservas() {
     setFiltroRecurso("");
   }
 
+  const usuarios = [...new Set(reservas.map((r) => r.usuario).filter(Boolean))];
+  const recursos = [...new Set(reservas.map((r) => r.recurso).filter(Boolean))];
+
   const reservasFiltradas = reservas.filter((r) => {
-    if (filtroData && String(r.data).slice(0, 10) != filtroData) {
+    if (
+      filtroData &&
+      String(r.data_inicial).slice(0, 10) !== filtroData
+    ) {
       return false;
     }
-    if (filtroUsuario && r.idUsuario != filtroUsuario) {
+
+    if (filtroUsuario && r.usuario !== filtroUsuario) {
       return false;
     }
-    if (filtroRecurso && r.tipo + "-" + r.idRecurso != filtroRecurso) {
+
+    if (filtroRecurso && r.recurso !== filtroRecurso) {
       return false;
     }
+
     return true;
   });
 
@@ -77,6 +70,7 @@ export default function ConsultarReservas() {
     <div className="min-h-screen bg-gray-100">
       <header className="flex justify-between bg-slate-700 text-white px-4 py-4">
         <h1 className="font-bold text-lg">Sistema de Reservas</h1>
+
         <nav className="flex gap-6">
           <Link href="/">Página inicial</Link>
           <Link href="/reservas">Fazer reserva</Link>
@@ -84,11 +78,11 @@ export default function ConsultarReservas() {
         </nav>
       </header>
 
-      <main className="flex justify-center mt-10">
+      <main className="flex justify-center mt-10 px-4">
         <div className="bg-white border border-gray-300 p-6 w-full max-w-4xl">
           <h2 className="font-bold text-lg mb-4">Consultar reservas</h2>
 
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
             <div className="flex-1">
               <label>Data</label>
               <input
@@ -107,9 +101,9 @@ export default function ConsultarReservas() {
                 onChange={(e) => setFiltroUsuario(e.target.value)}
               >
                 <option value="">Todos</option>
-                {usuarios.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.nome}
+                {usuarios.map((usuario) => (
+                  <option key={usuario} value={usuario}>
+                    {usuario}
                   </option>
                 ))}
               </select>
@@ -123,14 +117,9 @@ export default function ConsultarReservas() {
                 onChange={(e) => setFiltroRecurso(e.target.value)}
               >
                 <option value="">Todos</option>
-                {laboratorios.map((lab) => (
-                  <option key={"laboratorio-" + lab.id} value={"laboratorio-" + lab.id}>
-                    Laboratório {lab.nome}
-                  </option>
-                ))}
-                {salas.map((sala) => (
-                  <option key={"sala-" + sala.id} value={"sala-" + sala.id}>
-                    Sala {sala.nome}
+                {recursos.map((recurso) => (
+                  <option key={recurso} value={recurso}>
+                    {recurso}
                   </option>
                 ))}
               </select>
@@ -144,30 +133,48 @@ export default function ConsultarReservas() {
             Limpar filtros
           </button>
 
-          <table className="w-full border border-gray-300 text-left">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="border border-gray-300 p-2">Recurso</th>
-                <th className="border border-gray-300 p-2">Data</th>
-                <th className="border border-gray-300 p-2">Horário</th>
-                <th className="border border-gray-300 p-2">Usuário</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reservasFiltradas.map((r, i) => (
-                <tr key={r.id || i}>
-                  <td className="border border-gray-300 p-2">
-                    {nomeRecurso(r.tipo, r.idRecurso)}
-                  </td>
-                  <td className="border border-gray-300 p-2">{formatarData(r.data)}</td>
-                  <td className="border border-gray-300 p-2">{r.horario}</td>
-                  <td className="border border-gray-300 p-2">{nomeUsuario(r.idUsuario)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-300 text-left">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="border border-gray-300 p-2">Recurso</th>
+                  <th className="border border-gray-300 p-2">Data</th>
+                  <th className="border border-gray-300 p-2">Horário</th>
+                  <th className="border border-gray-300 p-2">Usuário</th>
+                  <th className="border border-gray-300 p-2">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
 
-          {reservasFiltradas.length == 0 && (
+              <tbody>
+                {reservasFiltradas.map((r) => (
+                  <tr key={r.id}>
+                    <td className="border border-gray-300 p-2">
+                      {r.recurso || "Não informado"}
+                    </td>
+
+                    <td className="border border-gray-300 p-2">
+                      {formatarData(r.data_inicial)}
+                    </td>
+
+                    <td className="border border-gray-300 p-2">
+                      {formatarHora(r.hora_inicial)} -{" "}
+                      {formatarHora(r.hora_final)}
+                    </td>
+
+                    <td className="border border-gray-300 p-2">
+                      {r.usuario || "Não informado"}
+                    </td>
+
+                    <td className="border border-gray-300 p-2">
+                      {r.status || "Não informado"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {reservasFiltradas.length === 0 && (
             <p className="mt-4">Nenhuma reserva encontrada.</p>
           )}
         </div>
