@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,20 +26,12 @@ export default function Reservas() {
       try {
         const respostaSalas = await fetch("http://localhost:3000/salas");
         const dadosSalas = await respostaSalas.json();
-
-        console.log("Salas recebidas:", dadosSalas);
-
-        setSalas(
-          Array.isArray(dadosSalas) ? dadosSalas : []
-        );
+        setSalas(Array.isArray(dadosSalas) ? dadosSalas : []);
 
         const respostaLaboratorios = await fetch(
           "http://localhost:3000/laboratorios"
         );
         const dadosLaboratorios = await respostaLaboratorios.json();
-
-        console.log("Laboratórios recebidos:", dadosLaboratorios);
-
         setLaboratorios(
           Array.isArray(dadosLaboratorios) ? dadosLaboratorios : []
         );
@@ -51,9 +44,6 @@ export default function Reservas() {
       try {
         const resposta = await fetch("http://localhost:3000/usuarios");
         const dados = await resposta.json();
-
-        console.log("Usuários recebidos:", dados);
-
         setUsuarios(Array.isArray(dados) ? dados : []);
       } catch (erro) {
         console.log("Erro ao buscar usuários:", erro);
@@ -73,8 +63,27 @@ export default function Reservas() {
     }
 
     const partes = recurso.split("-");
-    const tipo = partes[0];
-    const idRecurso = partes[1];
+    const idRecurso = Number(partes[1]);
+    const idUsuario = Number(usuario);
+
+    const [hora, minuto] = horario.split(":").map(Number);
+    const minutosTotais = hora * 60 + minuto + 45;
+    const horaFinal = String(Math.floor(minutosTotais / 60)).padStart(2, "0");
+    const minutoFinal = String(minutosTotais % 60).padStart(2, "0");
+
+    const horarioFinal = `${horaFinal}:${minutoFinal}:00`;
+
+    const dadosReserva = {
+      id_recurso: idRecurso,
+      id_usuario: idUsuario,
+      id_status: 4,
+      data_inicial: data,
+      data_final: data,
+      hora_inicial: `${horario}:00`,
+      hora_final: horarioFinal,
+    };
+
+    console.log("Dados enviados para reserva:", dadosReserva);
 
     try {
       const resposta = await fetch("http://localhost:3000/reservas", {
@@ -82,14 +91,10 @@ export default function Reservas() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          tipo: tipo,
-          idRecurso: idRecurso,
-          idUsuario: usuario,
-          data: data,
-          horario: horario,
-        }),
+        body: JSON.stringify(dadosReserva),
       });
+
+      const resultado = await resposta.json();
 
       if (resposta.ok) {
         alert("Reserva realizada!");
@@ -99,9 +104,8 @@ export default function Reservas() {
         setHorario("");
         setUsuario("");
       } else {
-        const erro = await resposta.text();
-        console.log("Erro retornado pelo servidor:", erro);
-        alert("Erro ao fazer a reserva.");
+        console.log("Erro retornado pelo servidor:", resultado);
+        alert("Erro ao fazer a reserva: " + (resultado.erro || resultado.mensagem || "Verifique os dados."));
       }
     } catch (erro) {
       console.log("Erro ao enviar reserva:", erro);
@@ -110,7 +114,7 @@ export default function Reservas() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 text-black">
       <header className="flex justify-between bg-slate-700 text-white px-4 py-4">
         <h1 className="font-bold text-lg">Sistema de Reservas</h1>
 
@@ -124,14 +128,19 @@ export default function Reservas() {
       <main className="flex justify-center mt-10 px-4">
         <form
           onSubmit={confirmarReserva}
-          className="bg-white border border-gray-300 p-6 w-96 max-w-full"
+          className="bg-white text-black border border-gray-300 p-6 w-96 max-w-full"
         >
-          <h2 className="font-bold text-lg mb-4">Fazer reserva</h2>
+          <h2 className="font-bold text-lg mb-4 text-black">
+            Fazer reserva
+          </h2>
 
-          <label htmlFor="recurso">Laboratório ou sala</label>
+          <label htmlFor="recurso" className="text-black">
+            Laboratório ou sala
+          </label>
+
           <select
             id="recurso"
-            className="w-full border border-gray-300 p-2 mb-3"
+            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={recurso}
             onChange={(e) => setRecurso(e.target.value)}
             required
@@ -157,20 +166,26 @@ export default function Reservas() {
             ))}
           </select>
 
-          <label htmlFor="data">Data</label>
+          <label htmlFor="data" className="text-black">
+            Data
+          </label>
+
           <input
             id="data"
             type="date"
-            className="w-full border border-gray-300 p-2 mb-3"
+            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={data}
             onChange={(e) => setData(e.target.value)}
             required
           />
 
-          <label htmlFor="horario">Horário</label>
+          <label htmlFor="horario" className="text-black">
+            Horário
+          </label>
+
           <select
             id="horario"
-            className="w-full border border-gray-300 p-2 mb-3"
+            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={horario}
             onChange={(e) => setHorario(e.target.value)}
             required
@@ -184,10 +199,13 @@ export default function Reservas() {
             ))}
           </select>
 
-          <label htmlFor="usuario">Usuário</label>
+          <label htmlFor="usuario" className="text-black">
+            Usuário
+          </label>
+
           <select
             id="usuario"
-            className="w-full border border-gray-300 p-2 mb-4"
+            className="w-full border border-gray-300 p-2 mb-4 text-black bg-white"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             required

@@ -2,6 +2,7 @@ import express from "express";
 import laboratorios from "./laboratorios.js";
 import salas from "./salas.js";
 import users from "./users.js";
+import reservas from "./reservas.js";
 
 export default function routes(app) {
     app.use(express.json());
@@ -9,4 +10,5 @@ export default function routes(app) {
     app.use(laboratorios);
     app.use(salas);
     app.use(users);
+    app.use(reservas);
 }

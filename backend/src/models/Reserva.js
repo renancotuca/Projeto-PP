@@ -53,15 +53,30 @@ class Reserva {
                 hora_final
             )
             VALUES (
-                ${dados.id_recurso},
-                ${dados.id_usuario},
-                ${dados.id_status},
+                ${Number(dados.id_recurso)},
+                ${Number(dados.id_usuario)},
+                ${Number(dados.id_status)},
                 '${dados.data_inicial}',
                 '${dados.data_final}',
                 '${dados.hora_inicial}',
                 '${dados.hora_final}'
             )
         `);
+
+        return resultado.rowsAffected;
+    }
+
+    static async excluir(id) {
+        const conexao = await conectaBD();
+
+        const resultado = await conexao.query(`
+            DELETE FROM Reserva
+            WHERE id = ${Number(id)}
+        `);
+
+        if (resultado.rowsAffected[0] === 0) {
+            throw new Error("Reserva não encontrada.");
+        }
 
         return resultado.rowsAffected;
     }

@@ -1,3 +1,4 @@
+
 import express from "express";
 import Reserva from "../models/Reserva.js";
 
@@ -27,6 +28,18 @@ router.post("/reservas", async (req, res) => {
 
         res.status(201).json({
             mensagem: "Reserva cadastrada com sucesso"
+        });
+    } catch (error) {
+        res.status(500).json({ erro: error.message });
+    }
+});
+
+router.delete("/reservas/:id", async (req, res) => {
+    try {
+        await Reserva.excluir(req.params.id);
+
+        res.status(200).json({
+            mensagem: "Reserva excluída com sucesso"
         });
     } catch (error) {
         res.status(500).json({ erro: error.message });
