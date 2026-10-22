@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,7 +11,11 @@ export default function Reservas() {
   const [recurso, setRecurso] = useState("");
   const [data, setData] = useState("");
   const [horario, setHorario] = useState("");
+  const [horarioFinal, setHorarioFinal] = useState("");
   const [usuario, setUsuario] = useState("");
+
+  const [mensagem, setMensagem] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState("");
 
   const horarios = [
     "07:00", "07:45", "08:30", "09:15", "10:00",
@@ -57,21 +60,24 @@ export default function Reservas() {
   async function confirmarReserva(e) {
     e.preventDefault();
 
-    if (!recurso || !data || !horario || !usuario) {
-      alert("Preencha todos os campos.");
+    setMensagem("");
+    setTipoMensagem("");
+
+    if (!recurso || !data || !horario || !horarioFinal || !usuario) {
+      setMensagem("Preencha todos os campos.");
+      setTipoMensagem("erro");
+      return;
+    }
+
+    if (horarioFinal <= horario) {
+      setMensagem("O horário final deve ser depois do horário de início.");
+      setTipoMensagem("erro");
       return;
     }
 
     const partes = recurso.split("-");
     const idRecurso = Number(partes[1]);
     const idUsuario = Number(usuario);
-
-    const [hora, minuto] = horario.split(":").map(Number);
-    const minutosTotais = hora * 60 + minuto + 45;
-    const horaFinal = String(Math.floor(minutosTotais / 60)).padStart(2, "0");
-    const minutoFinal = String(minutosTotais % 60).padStart(2, "0");
-
-    const horarioFinal = `${horaFinal}:${minutoFinal}:00`;
 
     const dadosReserva = {
       id_recurso: idRecurso,
@@ -80,7 +86,7 @@ export default function Reservas() {
       data_inicial: data,
       data_final: data,
       hora_inicial: `${horario}:00`,
-      hora_final: horarioFinal,
+      hora_final: `${horarioFinal}:00`,
     };
 
     console.log("Dados enviados para reserva:", dadosReserva);
@@ -97,19 +103,30 @@ export default function Reservas() {
       const resultado = await resposta.json();
 
       if (resposta.ok) {
-        alert("Reserva realizada!");
+        setMensagem("Reserva realizada com sucesso!");
+        setTipoMensagem("sucesso");
 
         setRecurso("");
         setData("");
         setHorario("");
+        setHorarioFinal("");
         setUsuario("");
       } else {
         console.log("Erro retornado pelo servidor:", resultado);
-        alert("Erro ao fazer a reserva: " + (resultado.erro || resultado.mensagem || "Verifique os dados."));
+
+        setMensagem(
+          "Erro ao fazer a reserva: " +
+            (resultado.erro ||
+              resultado.mensagem ||
+              "Verifique os dados.")
+        );
+        setTipoMensagem("erro");
       }
     } catch (erro) {
       console.log("Erro ao enviar reserva:", erro);
-      alert("Não foi possível conectar ao servidor.");
+
+      setMensagem("Não foi possível conectar ao servidor.");
+      setTipoMensagem("erro");
     }
   }
 
@@ -133,6 +150,20 @@ export default function Reservas() {
           <h2 className="font-bold text-lg mb-4 text-black">
             Fazer reserva
           </h2>
+
+          {mensagem && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={`mb-4 rounded-lg border p-3 ${
+                tipoMensagem === "sucesso"
+                  ? "border-green-300 bg-green-100 text-green-800"
+                  : "border-red-300 bg-red-100 text-red-800"
+              }`}
+            >
+              {mensagem}
+            </div>
+          )}
 
           <label htmlFor="recurso" className="text-black">
             Laboratório ou sala
@@ -180,23 +211,51 @@ export default function Reservas() {
           />
 
           <label htmlFor="horario" className="text-black">
-            Horário
+            Horário de início
           </label>
 
           <select
             id="horario"
             className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={horario}
-            onChange={(e) => setHorario(e.target.value)}
+            onChange={(e) => {
+              setHorario(e.target.value);
+
+              if (horarioFinal && horarioFinal <= e.target.value) {
+                setHorarioFinal("");
+              }
+            }}
             required
           >
-            <option value="">Selecione</option>
+            <option value="">Selecione o horário de início</option>
 
             {horarios.map((h) => (
               <option key={h} value={h}>
                 {h}
               </option>
             ))}
+          </select>
+
+          <label htmlFor="horarioFinal" className="text-black">
+            Horário final
+          </label>
+
+          <select
+            id="horarioFinal"
+            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
+            value={horarioFinal}
+            onChange={(e) => setHorarioFinal(e.target.value)}
+            required
+          >
+            <option value="">Selecione o horário final</option>
+
+            {horarios
+              .filter((h) => !horario || h > horario)
+              .map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
           </select>
 
           <label htmlFor="usuario" className="text-black">
