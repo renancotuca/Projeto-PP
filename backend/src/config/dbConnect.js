@@ -1,15 +1,19 @@
-import 'dotenv/config';
-import mssql from 'mssql';
+import "dotenv/config";
+import mssql from "mssql";
 
 const stringSQL = process.env.CONNECTION_STRING;
 
 async function conectaBD() {
-    try{
+    try {
+        if (!stringSQL) {
+            throw new Error("CONNECTION_STRING não foi definida no arquivo .env");
+        }
+
         await mssql.connect(stringSQL);
         return mssql;
-    }
-    catch(erro){
-        console.log("Erro no acesso ao BD.", erro)
+    } catch (erro) {
+        console.error("Erro no acesso ao banco de dados:", erro.message);
+        throw erro;
     }
 }
 

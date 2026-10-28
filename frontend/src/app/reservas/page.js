@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import "./style.css";
 
 export default function Reservas() {
   const [salas, setSalas] = useState([]);
@@ -131,47 +132,35 @@ export default function Reservas() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black">
-      <header className="flex justify-between bg-slate-700 text-white px-4 py-4">
-        <h1 className="font-bold text-lg">Sistema de Reservas</h1>
+    <div className="pagina-reservas">
+      <header className="cabecalho-reservas">
+        <h1>Sistema de Reservas</h1>
 
-        <nav className="flex gap-6">
+        <nav>
           <Link href="/">Página inicial</Link>
           <Link href="/reservas">Fazer reserva</Link>
           <Link href="/consultar-reservas">Consultar reservas</Link>
         </nav>
       </header>
 
-      <main className="flex justify-center mt-10 px-4">
-        <form
-          onSubmit={confirmarReserva}
-          className="bg-white text-black border border-gray-300 p-6 w-96 max-w-full"
-        >
-          <h2 className="font-bold text-lg mb-4 text-black">
-            Fazer reserva
-          </h2>
+      <main className="conteudo-reservas">
+        <form onSubmit={confirmarReserva} className="formulario-reservas">
+          <h2>Fazer reserva</h2>
 
           {mensagem && (
             <div
               role="status"
               aria-live="polite"
-              className={`mb-4 rounded-lg border p-3 ${
-                tipoMensagem === "sucesso"
-                  ? "border-green-300 bg-green-100 text-green-800"
-                  : "border-red-300 bg-red-100 text-red-800"
-              }`}
+              className={`mensagem-reserva ${tipoMensagem}`}
             >
               {mensagem}
             </div>
           )}
 
-          <label htmlFor="recurso" className="text-black">
-            Laboratório ou sala
-          </label>
+          <label htmlFor="recurso">Laboratório ou sala</label>
 
           <select
             id="recurso"
-            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={recurso}
             onChange={(e) => setRecurso(e.target.value)}
             required
@@ -188,35 +177,26 @@ export default function Reservas() {
             ))}
 
             {salas.map((sala) => (
-              <option
-                key={"sala-" + sala.id}
-                value={"sala-" + sala.id}
-              >
+              <option key={"sala-" + sala.id} value={"sala-" + sala.id}>
                 Sala {sala.nome}
               </option>
             ))}
           </select>
 
-          <label htmlFor="data" className="text-black">
-            Data
-          </label>
+          <label htmlFor="data">Data</label>
 
           <input
             id="data"
             type="date"
-            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={data}
             onChange={(e) => setData(e.target.value)}
             required
           />
 
-          <label htmlFor="horario" className="text-black">
-            Horário de início
-          </label>
+          <label htmlFor="horario">Horário de início</label>
 
           <select
             id="horario"
-            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={horario}
             onChange={(e) => {
               setHorario(e.target.value);
@@ -236,13 +216,10 @@ export default function Reservas() {
             ))}
           </select>
 
-          <label htmlFor="horarioFinal" className="text-black">
-            Horário final
-          </label>
+          <label htmlFor="horarioFinal">Horário final</label>
 
           <select
             id="horarioFinal"
-            className="w-full border border-gray-300 p-2 mb-3 text-black bg-white"
             value={horarioFinal}
             onChange={(e) => setHorarioFinal(e.target.value)}
             required
@@ -258,13 +235,10 @@ export default function Reservas() {
               ))}
           </select>
 
-          <label htmlFor="usuario" className="text-black">
-            Usuário
-          </label>
+          <label htmlFor="usuario">Usuário</label>
 
           <select
             id="usuario"
-            className="w-full border border-gray-300 p-2 mb-4 text-black bg-white"
             value={usuario}
             onChange={(e) => setUsuario(e.target.value)}
             required
@@ -278,12 +252,7 @@ export default function Reservas() {
             ))}
           </select>
 
-          <button
-            type="submit"
-            className="w-full bg-slate-700 hover:bg-slate-800 text-white p-2"
-          >
-            Confirmar reserva
-          </button>
+          <button type="submit">Confirmar reserva</button>
         </form>
       </main>
     </div>

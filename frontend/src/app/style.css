@@ -1,0 +1,141 @@
+.pagina-inicial {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+.cabecalho-inicial {
+  padding: 12px 24px;
+  background-color: #374151;
+}
+
+.cabecalho-inicial nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.titulo-sistema {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.links-navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.links-navegacao a {
+  padding: 8px 16px;
+  color: white;
+  text-decoration: none;
+}
+
+.links-navegacao a:hover {
+  background-color: #1f2937;
+}
+
+.links-navegacao .link-ativo {
+  font-weight: 500;
+}
+
+.conteudo-inicial {
+  flex: 1;
+  width: 100%;
+  max-width: 1024px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+
+.cards-inicial {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.card-inicial {
+  padding: 32px;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.10);
+}
+
+.card-inicial h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.card-inicial p {
+  margin-top: 16px;
+  color: #4b5563;
+  line-height: 28px;
+}
+
+.link-card {
+  display: inline-block;
+  margin-top: 16px;
+  color: #374151;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.link-card:hover {
+  text-decoration: underline;
+}
+
+.rodape-inicial {
+  padding: 24px 32px;
+  background-color: white;
+  border-top: 1px solid #d1d5db;
+}
+
+.rodape-inicial h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.rodape-inicial p {
+  margin-top: 12px;
+  color: #4b5563;
+  line-height: 28px;
+}
+
+@media (max-width: 768px) {
+  .cabecalho-inicial nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .links-navegacao {
+    justify-content: flex-start;
+  }
+
+  .conteudo-inicial {
+    padding: 32px 20px;
+  }
+
+  .cards-inicial {
+    grid-template-columns: 1fr;
+  }
+
+  .card-inicial {
+    padding: 24px;
+  }
+
+  .rodape-inicial {
+    padding: 24px 20px;
+  }
+}
