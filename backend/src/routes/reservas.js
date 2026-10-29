@@ -1,4 +1,3 @@
-
 import express from "express";
 import Reserva from "../models/Reserva.js";
 
@@ -23,6 +22,33 @@ router.get("/reservas", async (req, res) => {
 router.post("/reservas", async (req, res) => {
     try {
         const dados = req.body;
+
+        if (!dados.data_inicial) {
+            return res.status(400).json({
+                erro: "A data da reserva é obrigatória."
+            });
+        }
+
+        const dataReserva = new Date(`${dados.data_inicial}T00:00:00`);
+        const agora = new Date();
+
+        const hoje = new Date(
+            agora.getFullYear(),
+            agora.getMonth(),
+            agora.getDate()
+        );
+
+        if (Number.isNaN(dataReserva.getTime())) {
+            return res.status(400).json({
+                erro: "A data da reserva é inválida."
+            });
+        }
+
+        if (dataReserva < hoje) {
+            return res.status(400).json({
+                erro: "A data da reserva não pode ser anterior a data atual."
+            });
+        }
 
         await Reserva.inserir(dados);
 
