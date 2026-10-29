@@ -14,6 +14,7 @@ export default function Reservas() {
   const [horario, setHorario] = useState("");
   const [horarioFinal, setHorarioFinal] = useState("");
   const [usuario, setUsuario] = useState("");
+  const [nomeUsuarioLogado, setNomeUsuarioLogado] = useState("");
 
   const [mensagem, setMensagem] = useState("");
   const [tipoMensagem, setTipoMensagem] = useState("");
@@ -26,6 +27,27 @@ export default function Reservas() {
   ];
 
   useEffect(() => {
+    const dadosSalvos = sessionStorage.getItem("usuario");
+
+    if (dadosSalvos) {
+      try {
+        const usuarioLogado = JSON.parse(dadosSalvos);
+
+        if (usuarioLogado.id != null) {
+          setUsuario(String(usuarioLogado.id));
+        }
+
+        setNomeUsuarioLogado(
+          usuarioLogado.nome_completo ||
+          usuarioLogado.nome ||
+          usuarioLogado.email ||
+          ""
+        );
+      } catch (erro) {
+        console.log("Erro ao recuperar usuário logado:", erro);
+      }
+    }
+
     async function carregarRecursos() {
       try {
         const respostaSalas = await fetch("http://localhost:3000/salas");
@@ -36,6 +58,7 @@ export default function Reservas() {
           "http://localhost:3000/laboratorios"
         );
         const dadosLaboratorios = await respostaLaboratorios.json();
+
         setLaboratorios(
           Array.isArray(dadosLaboratorios) ? dadosLaboratorios : []
         );
@@ -48,6 +71,7 @@ export default function Reservas() {
       try {
         const resposta = await fetch("http://localhost:3000/usuarios");
         const dados = await resposta.json();
+
         setUsuarios(Array.isArray(dados) ? dados : []);
       } catch (erro) {
         console.log("Erro ao buscar usuários:", erro);
@@ -90,8 +114,6 @@ export default function Reservas() {
       hora_final: `${horarioFinal}:00`,
     };
 
-    console.log("Dados enviados para reserva:", dadosReserva);
-
     try {
       const resposta = await fetch("http://localhost:3000/reservas", {
         method: "POST",
@@ -111,10 +133,7 @@ export default function Reservas() {
         setData("");
         setHorario("");
         setHorarioFinal("");
-        setUsuario("");
       } else {
-        console.log("Erro retornado pelo servidor:", resultado);
-
         setMensagem(
           "Erro ao fazer a reserva: " +
             (resultado.erro ||
@@ -130,6 +149,18 @@ export default function Reservas() {
       setTipoMensagem("erro");
     }
   }
+
+  const usuarioEncontrado = usuarios.find(
+    (u) => String(u.id) === String(usuario)
+  );
+
+  const nomeExibido = nomeUsuarioLogado ||
+    (usuarioEncontrado
+      ? usuarioEncontrado.nome_completo ||
+        usuarioEncontrado.nome ||
+        usuarioEncontrado.nomeCompleto ||
+        usuarioEncontrado.email
+      : "");
 
   return (
     <div className="pagina-reservas">
@@ -237,20 +268,13 @@ export default function Reservas() {
 
           <label htmlFor="usuario">Usuário</label>
 
-          <select
+          <input
             id="usuario"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
+            type="text"
+            value={nomeExibido || "Carregando usuário..."}
+            readOnly
             required
-          >
-            <option value="">Selecione</option>
-
-            {usuarios.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nome_completo || u.nome || u.nomeCompleto || u.email}
-              </option>
-            ))}
-          </select>
+          />
 
           <button type="submit">Confirmar reserva</button>
         </form>

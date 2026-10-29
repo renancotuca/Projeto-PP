@@ -37,10 +37,6 @@
   text-decoration: none;
 }
 
-.links-navegacao a:hover {
-  background-color: #1f2937;
-}
-
 .links-navegacao .link-ativo {
   font-weight: 500;
 }
@@ -90,10 +86,6 @@
   text-decoration: none;
 }
 
-.link-card:hover {
-  text-decoration: underline;
-}
-
 .rodape-inicial {
   padding: 24px 32px;
   background-color: white;
@@ -138,4 +130,23 @@
   .rodape-inicial {
     padding: 24px 20px;
   }
+}
+
+.botao-sair {
+    padding: 8px 14px;
+    border: 1px solid white;
+    border-radius: 4px;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+}
+
+.botao-sair:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.mensagem-boas-vindas {
+    margin-bottom: 24px;
+    color: #374151;
+    font-size: 18px;
 }
