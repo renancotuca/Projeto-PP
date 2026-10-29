@@ -73,6 +73,10 @@ export default function Home() {
 
       <main className="flex-1 px-6 py-12">
         <div className="mx-auto max-w-5xl">
+          <h1 className="mb-3 text-3xl font-bold text-gray-800">
+            Página inicial
+          </h1>
+
           <p className="mensagem-boas-vindas">
             {usuario
               ? `Olá, ${usuario.nome_completo}!`
@@ -122,6 +126,10 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <footer className="bg-gray-200 px-6 py-4 text-center text-sm text-gray-600">
+        Sistema de Reservas
+      </footer>
     </div>
   );
 }

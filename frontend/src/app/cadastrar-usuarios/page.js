@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import "./style.css";
 
 export default function CadastrarUsuarios() {
   const [formulario, setFormulario] = useState({
@@ -9,10 +11,11 @@ export default function CadastrarUsuarios() {
     data_nascimento: "",
     celular: "",
     email: "",
+    senha: ""
   });
 
   const [mensagem, setMensagem] = useState("");
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(false);
   const [carregando, setCarregando] = useState(false);
 
   function formatarCPF(valor) {
@@ -60,8 +63,9 @@ export default function CadastrarUsuarios() {
 
   async function cadastrar(e) {
     e.preventDefault();
+
     setMensagem("");
-    setErro("");
+    setErro(false);
 
     const cpf = formulario.cpf.replace(/\D/g, "");
     const celular = formulario.celular.replace(/\D/g, "");
@@ -71,19 +75,32 @@ export default function CadastrarUsuarios() {
       /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|outlook\.com|yahoo\.com)$/i;
 
     if (cpf.length !== 11) {
-      setErro("O CPF deve ter 11 números.");
+      setErro(true);
+      setMensagem("O CPF deve ter 11 números.");
       return;
     }
 
     if (!emailValido.test(email)) {
-      setErro(
-        "Digite um e-mail válido do Gmail, Hotmail, Outlook ou Yahoo."
-      );
+      setErro(true);
+      setMensagem("Digite um e-mail válido do Gmail, Hotmail, Outlook ou Yahoo.");
       return;
     }
 
     if (celular.length !== 10 && celular.length !== 11) {
-      setErro("O telefone deve ter 10 ou 11 números, incluindo o DDD.");
+      setErro(true);
+      setMensagem("O telefone deve ter 10 ou 11 números, incluindo o DDD.");
+      return;
+    }
+
+    if (formulario.senha.length < 8) {
+      setErro(true);
+      setMensagem("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+
+    if (!formulario.nome_completo.trim()) {
+      setErro(true);
+      setMensagem("Informe o nome completo.");
       return;
     }
 
@@ -93,27 +110,30 @@ export default function CadastrarUsuarios() {
       const resposta = await fetch("http://localhost:3000/usuarios", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           cpf,
           nome_completo: formulario.nome_completo.trim(),
           data_nascimento: formulario.data_nascimento,
-          celular: formulario.celular,
+          celular,
           email,
-        }),
+          senha: formulario.senha
+        })
       });
 
       const dados = await resposta.json().catch(() => ({}));
 
       if (!resposta.ok) {
         throw new Error(
+          dados.erro ||
           dados.message ||
-            dados.mensagem ||
-            "Não foi possível cadastrar o usuário."
+          dados.mensagem ||
+          "Não foi possível cadastrar o usuário."
         );
       }
 
+      setErro(false);
       setMensagem("Usuário cadastrado com sucesso!");
 
       setFormulario({
@@ -122,128 +142,110 @@ export default function CadastrarUsuarios() {
         data_nascimento: "",
         celular: "",
         email: "",
+        senha: ""
       });
+
     } catch (error) {
-      setErro(error.message || "Erro ao conectar com o servidor.");
+      setErro(true);
+      setMensagem(error.message || "Erro ao conectar com o servidor.");
     } finally {
       setCarregando(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-10">
-      <div className="mx-auto max-w-xl rounded-md border border-gray-300 bg-white p-6 shadow-sm">
-        <h1 className="mb-6 text-2xl font-bold text-gray-800">
-          Cadastrar usuário
-        </h1>
+    <main className="pagina-cadastrar-usuarios">
+      <div className="formulario-usuarios">
+        <h1>Cadastrar usuário</h1>
+
+        <p>
+          Preencha os dados para cadastrar um novo usuário no sistema.
+        </p>
+
+        <form onSubmit={cadastrar}>
+          <label htmlFor="cpf">CPF</label>
+          <input
+            id="cpf"
+            name="cpf"
+            type="text"
+            value={formulario.cpf}
+            onChange={alterarCampo}
+            required
+            maxLength={14}
+            placeholder="000.000.000-00"
+          />
+
+          <label htmlFor="nome_completo">Nome completo</label>
+          <input
+            id="nome_completo"
+            name="nome_completo"
+            type="text"
+            value={formulario.nome_completo}
+            onChange={alterarCampo}
+            required
+            placeholder="Digite o nome completo"
+          />
+
+          <label htmlFor="data_nascimento">Data de nascimento</label>
+          <input
+            id="data_nascimento"
+            name="data_nascimento"
+            type="date"
+            value={formulario.data_nascimento}
+            onChange={alterarCampo}
+            required
+          />
+
+          <label htmlFor="celular">Celular</label>
+          <input
+            id="celular"
+            name="celular"
+            type="tel"
+            value={formulario.celular}
+            onChange={alterarCampo}
+            required
+            maxLength={15}
+            placeholder="(11) 98765-4321"
+          />
+
+          <label htmlFor="email">E-mail</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={formulario.email}
+            onChange={alterarCampo}
+            required
+            placeholder="exemplo@gmail.com"
+          />
+
+          <label htmlFor="senha">Senha</label>
+          <input
+            id="senha"
+            name="senha"
+            type="password"
+            value={formulario.senha}
+            onChange={alterarCampo}
+            required
+            minLength={8}
+            placeholder="Crie uma senha com pelo menos 8 caracteres"
+          />
+
+          <button type="submit" disabled={carregando}>
+            {carregando ? "Cadastrando..." : "Cadastrar usuário"}
+          </button>
+        </form>
 
         {mensagem && (
-          <p className="mb-4 rounded border border-green-300 bg-green-50 p-3 text-green-800">
+          <p className={erro ? "mensagem-erro" : "mensagem-sucesso"}>
             {mensagem}
           </p>
         )}
 
-        {erro && (
-          <p className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-red-700">
-            {erro}
-          </p>
-        )}
-
-        <form onSubmit={cadastrar} className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="cpf" className="mb-1 block text-gray-800">
-              CPF
-            </label>
-            <input
-              id="cpf"
-              name="cpf"
-              type="text"
-              inputMode="numeric"
-              value={formulario.cpf}
-              onChange={alterarCampo}
-              maxLength={14}
-              required
-              placeholder="000.000.000-00"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-black outline-none focus:border-gray-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="nome_completo" className="mb-1 block text-gray-800">
-              Nome completo
-            </label>
-            <input
-              id="nome_completo"
-              name="nome_completo"
-              type="text"
-              value={formulario.nome_completo}
-              onChange={alterarCampo}
-              required
-              className="w-full rounded border border-gray-300 px-3 py-2 text-black outline-none focus:border-gray-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="data_nascimento"
-              className="mb-1 block text-gray-800"
-            >
-              Data de nascimento
-            </label>
-            <input
-              id="data_nascimento"
-              name="data_nascimento"
-              type="date"
-              value={formulario.data_nascimento}
-              onChange={alterarCampo}
-              required
-              className="w-full rounded border border-gray-300 px-3 py-2 text-black outline-none focus:border-gray-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="celular" className="mb-1 block text-gray-800">
-              Telefone
-            </label>
-            <input
-              id="celular"
-              name="celular"
-              type="text"
-              inputMode="numeric"
-              value={formulario.celular}
-              onChange={alterarCampo}
-              maxLength={15}
-              required
-              placeholder="(00) 00000-0000"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-black outline-none focus:border-gray-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="mb-1 block text-gray-800">
-              E-mail
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formulario.email}
-              onChange={alterarCampo}
-              required
-              placeholder="exemplo@gmail.com"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-black outline-none focus:border-gray-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={carregando}
-            className="mt-2 rounded bg-gray-700 px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {carregando ? "Cadastrando..." : "Cadastrar usuário"}
-          </button>
-        </form>
+        <Link href="/login" className="voltar-usuarios">
+          Voltar para a página inicial
+        </Link>
       </div>
-    </div>
+    </main>
   );
 }
